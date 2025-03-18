@@ -1,72 +1,57 @@
-const products = require("../data/products");
+const Product = require("../models/Product");
 
-const getAllProducts = (req, res) => {
-  res.json(products);
+const getAllProducts = async (req, res, next) => {
+  try {
+    const { available, sort } = req.query;
+    const filters = {
+      available: available !== undefined ? available === "true" : undefined,
+      sortByPrice: sort,
+    };
+    const products = await Product.getAllProducts(filters);
+    res.json(products);
+  } catch (err) {
+    next(err);
+  }
 };
 
-const getProductById = (req, res) => {
-  const product = products.find((p) => p.id === parseInt(req.params.id));
-  if (!product) {
-    return res.status(404).json({ message: "Produkt nie znaleziony" });
+const getProductById = async (req, res, next) => {
+  try {
+    const product = await Product.getProductById(req.params.id);
+    if (!product)
+      return res.status(404).json({ message: "Produkt nie znaleziony" });
+    res.json(product);
+  } catch (err) {
+    next(err);
   }
-  res.json(product);
 };
 
-const addProduct = (req, res) => {
-  const { name, category, description, price, stockCount, brand, imageUrl } =
-    req.body;
-
-  if (!name || !category || !price || !stockCount) {
-    return res.status(400).json({ message: "Brak wymaganych danych" });
+const addProduct = async (req, res, next) => {
+  try {
+    const newProduct = await Product.createProduct(req.body);
+    res.status(201).json(newProduct);
+  } catch (err) {
+    next(err);
   }
-
-  const newProduct = {
-    id: products.length + 1,
-    name,
-    category,
-    description,
-    price,
-    stockCount,
-    brand,
-    imageUrl,
-    isAvailable: stockCount > 0,
-    createdAt: new Date().toISOString(),
-  };
-
-  products.push(newProduct);
-  res.status(201).json(newProduct);
 };
 
-const updateProduct = (req, res) => {
-  const product = products.find((p) => p.id === parseInt(req.params.id));
-  if (!product) {
-    return res.status(404).json({ message: "Produkt nie znaleziony" });
+const updateProduct = async (req, res, next) => {
+  try {
+    const updatedProduct = await Product.updateProduct(req.params.id, req.body);
+    if (!updatedProduct)
+      return res.status(404).json({ message: "Produkt nie znaleziony" });
+    res.json(updatedProduct);
+  } catch (err) {
+    next(err);
   }
-
-  const { name, category, description, price, stockCount, brand, imageUrl } =
-    req.body;
-
-  product.name = name || product.name;
-  product.category = category || product.category;
-  product.description = description || product.description;
-  product.price = price || product.price;
-  product.stockCount =
-    stockCount !== undefined ? stockCount : product.stockCount;
-  product.brand = brand || product.brand;
-  product.imageUrl = imageUrl || product.imageUrl;
-  product.isAvailable = stockCount > 0;
-
-  res.json(product);
 };
 
-const deleteProduct = (req, res) => {
-  const index = products.findIndex((p) => p.id === parseInt(req.params.id));
-  if (index === -1) {
-    return res.status(404).json({ message: "Produkt nie znaleziony" });
+const deleteProduct = async (req, res, next) => {
+  try {
+    await Product.deleteProduct(req.params.id);
+    res.json({ message: "Produkt usunięty" });
+  } catch (err) {
+    next(err);
   }
-
-  products.splice(index, 1);
-  res.json({ message: "Produkt usunięty" });
 };
 
 module.exports = {

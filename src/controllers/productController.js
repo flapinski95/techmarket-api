@@ -26,6 +26,10 @@ const getProductById = async (req, res, next) => {
 };
 
 const addProduct = async (req, res, next) => {
+  if (!req.body.categoryId) {
+    return res.status(400).json({ error: "Pole categoryId jest wymagane." });
+  }
+
   try {
     const newProduct = await Product.createProduct(req.body);
     res.status(201).json(newProduct);
@@ -48,7 +52,7 @@ const updateProduct = async (req, res, next) => {
 const deleteProduct = async (req, res, next) => {
   try {
     await Product.deleteProduct(req.params.id);
-    res.json({ message: "Produkt usunięty" });
+    res.status(204).json({ message: "Produkt usunięty" });
   } catch (err) {
     next(err);
   }

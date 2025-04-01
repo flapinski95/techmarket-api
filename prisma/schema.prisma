@@ -17,7 +17,7 @@ model Product {
   id          Int        @id @default(autoincrement())
   name        String
   categoryId  Int
-  category    Category @relation(fields: [categoryId], references: [id])
+  category    Category   @relation(fields: [categoryId], references: [id])
   description String?
   price       Float
   stockCount  Int
@@ -26,6 +26,7 @@ model Product {
   isAvailable Boolean    @default(true)
   created_at  DateTime   @default(now())
   Reviews     Review[]
+  Baskets     Basket[]   
 }
 
 model Category {
@@ -44,6 +45,7 @@ model User {
   lastName     String
   created_at   DateTime  @default(now())
   Reviews      Review[]
+  Baskets      Basket[]
 }
 
 model Review {
@@ -55,3 +57,16 @@ model Review {
   rating     Int
   comment    String
 }
+
+model Basket {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id])
+  productId  Int
+  product    Product  @relation(fields: [productId], references: [id])
+  amount     Int
+  addedAt    DateTime @default(now()) 
+
+  @@unique([userId, productId]) 
+}
+

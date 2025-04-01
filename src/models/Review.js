@@ -28,7 +28,9 @@ const deleteReview = async (id) => {
   });
 };
 const updateReview = async (id, review) => {
-  const existing = await prisma.review.findUnique({ where: { id } });
+  const existing = await prisma.review.findUnique({
+    where: { id: Number(id) },
+  });
   if (!existing) {
     return res.status(404).json({ message: "Produkt nie istnieje" });
   }

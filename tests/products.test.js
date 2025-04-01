@@ -16,7 +16,23 @@ describe("Produkty API - CRUD + walidacja", () => {
     categoryId = category.id;
   });
 
+  beforeEach(async () => {
+    const product = await prisma.product.create({
+      data: {
+        name: "Test Produkt",
+        description: "Opis",
+        price: 123,
+        stockCount: 5,
+        brand: "Marka",
+        imageUrl: "https://example.com/img.jpg",
+        categoryId,
+      },
+    });
+    productId = product.id;
+  });
+
   afterAll(async () => {
+    await prisma.review.deleteMany();
     await prisma.product.deleteMany();
     await prisma.category.deleteMany();
     await prisma.$disconnect();

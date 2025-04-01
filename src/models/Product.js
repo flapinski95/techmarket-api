@@ -48,7 +48,9 @@ const createProduct = async (product) => {
 };
 
 const updateProduct = async (id, product) => {
-  const existing = await prisma.product.findUnique({ where: { id } });
+  const existing = await prisma.product.findUnique({
+    where: { id: Number(id) },
+  });
   if (!existing) {
     throw new Error("Produkt nie istnieje");
   }
@@ -58,7 +60,7 @@ const updateProduct = async (id, product) => {
   const isAvailable = stockCount > 0;
 
   return await prisma.product.update({
-    where: { id },
+    where: { id: Number(id) },
     data: {
       name,
       category,
@@ -73,9 +75,16 @@ const updateProduct = async (id, product) => {
 };
 
 const deleteProduct = async (id) => {
-  return await prisma.product.delete({
-    where: { id: Number(id) },
+  const productId = Number(id);
+  const existing = await prisma.product.findUnique({
+    where: { id: productId },
   });
+
+  if (!existing) {
+    throw new Error("Produkt nie istnieje");
+  }
+
+  return await prisma.product.delete({ where: { id: productId } });
 };
 
 module.exports = {

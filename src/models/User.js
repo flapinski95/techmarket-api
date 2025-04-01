@@ -23,7 +23,7 @@ const getUserById = async (id) => {
   });
 };
 const updateUser = async (id, user) => {
-  const existing = await prisma.user.findUnique({ where: { id } });
+  const existing = await prisma.user.findUnique({ where: { id: Number(id) } });
   if (!existing) {
     return res.status(404).json({ message: "Produkt nie istnieje" });
   }

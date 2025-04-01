@@ -7,35 +7,37 @@ describe("Recenzje API", () => {
   let userId, productId;
 
   beforeAll(async () => {
-    const user = await prisma.user.create({
-      data: {
-        username: "reviewer",
-        email: "reviewer@example.com",
-        passwordHash: "hash",
-        firstName: "Rewiu",
-        lastName: "Tester",
-      },
-    });
-
     const category = await prisma.category.create({
-      data: {
-        name: "Do recenzji",
-      },
+      data: { name: "Testowa", description: "Opis" },
     });
 
     const product = await prisma.product.create({
       data: {
-        name: "Produkt do recenzji",
-        description: "Do testowania recenzji",
-        price: 222,
-        stockCount: 2,
-        brand: "TestBrand",
+        name: "Produkt",
+        description: "Opis",
+        price: 123,
+        stockCount: 10,
+        brand: "Brand",
+        imageUrl: "https://img.jpg",
         categoryId: category.id,
       },
     });
 
-    userId = user.id;
+    const user = await prisma.user.create({
+      data: {
+        username: "recenzent",
+        email: "rec@example.com",
+        passwordHash: "tajne",
+        firstName: "Imie",
+        lastName: "Nazwisko",
+      },
+    });
+
     productId = product.id;
+    userId = user.id;
+
+    console.log("Product ID:", productId);
+    console.log("User ID:", userId);
   });
 
   afterAll(async () => {

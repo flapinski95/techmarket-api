@@ -8,6 +8,7 @@ const productRoutes = require("./src/routes/productRoutes");
 const userRoutes = require("./src/routes/userRoutes");
 const categoryRoutes = require("./src/routes/categoryRoutes");
 const reviewRoutes = require("./src/routes/reviewRoutes");
+const basketRoutes = require("./src/routes/basketRoutes");
 
 const app = express();
 const server = http.createServer(app);
@@ -23,6 +24,8 @@ app.use(errorHandler);
 app.use("/api/categories", categoryRoutes);
 app.use(errorHandler);
 app.use("/api/reviews", reviewRoutes);
+app.use(errorHandler);
+app.use("/api/basket", basketRoutes);
 app.use(errorHandler);
 
 app.use((req, res) => {

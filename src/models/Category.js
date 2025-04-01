@@ -25,7 +25,9 @@ const deleteCategory = async (id) => {
   });
 };
 const updateCategory = async (id, category) => {
-  const existing = await prisma.category.findUnique({ where: { id } });
+  const existing = await prisma.category.findUnique({
+    where: { id: Number(id) },
+  });
   if (!existing) {
     return res.status(404).json({ message: "Produkt nie istnieje" });
   }

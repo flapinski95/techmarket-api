@@ -9,7 +9,8 @@ const userRoutes = require("./src/routes/userRoutes");
 const categoryRoutes = require("./src/routes/categoryRoutes");
 const reviewRoutes = require("./src/routes/reviewRoutes");
 const basketRoutes = require("./src/routes/basketRoutes");
-
+const connectMongoDB = require("./src/config/mongo");
+connectMongoDB();
 const app = express();
 const server = http.createServer(app);
 

@@ -7,7 +7,9 @@ describe("Użytkownicy API - CRUD", () => {
   let userId;
 
   afterAll(async () => {
+    await prisma.basket.deleteMany();
     await prisma.user.deleteMany();
+    await prisma.$disconnect();
   });
 
   it("powinien dodać użytkownika", async () => {

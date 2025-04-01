@@ -1,55 +1,47 @@
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
+const mongoose = require("mongoose");
 
-const createReview = async (review) => {
-  const { productId, userId, rating, comment } = review;
-
-  return await prisma.review.create({
-    data: {
-      productId,
-      userId,
-      rating,
-      comment,
+const reviewSchema = new mongoose.Schema(
+  {
+    productId: {
+      type: Number,
+      required: true,
     },
-  });
-};
-
-const getReviewById = async (id) => {
-  return await prisma.review.findUnique({
-    where: { id: Number(id) },
-  });
-};
-const getAllReviews = async () => {
-  return await prisma.review.findMany();
-};
-const deleteReview = async (id) => {
-  return await prisma.review.delete({
-    where: { id: Number(id) },
-  });
-};
-const updateReview = async (id, review) => {
-  const existing = await prisma.review.findUnique({
-    where: { id: Number(id) },
-  });
-  if (!existing) {
-    return res.status(404).json({ message: "Produkt nie istnieje" });
+    userId: {
+      type: Number,
+      required: true,
+    },
+    rating: {
+      type: Number,
+      min: 1,
+      max: 5,
+      required: true,
+    },
+    title: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    content: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    pros: [String],
+    cons: [String],
+    verifiedPurchase: {
+      type: Boolean,
+      default: false,
+    },
+    helpfulVotes: {
+      type: Number,
+      default: 0,
+    },
+  },
+  {
+    timestamps: true,
   }
-  const { productId, userId, rating, comment } = review;
+);
 
-  return await prisma.review.update({
-    where: { id: Number(id) },
-    data: {
-      productId,
-      userId,
-      rating,
-      comment,
-    },
-  });
-};
-module.exports = {
-  createReview,
-  getReviewById,
-  getAllReviews,
-  deleteReview,
-  updateReview,
-};
+reviewSchema.index({ title: "text", content: "text" });
+
+module.exports = mongoose.model("Review", reviewSchema);

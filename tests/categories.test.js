@@ -7,9 +7,10 @@ describe("Kategorie API - CRUD", () => {
   let categoryId;
 
   afterAll(async () => {
-    await prisma.review.deleteMany();
+    await prisma.basket.deleteMany();
     await prisma.product.deleteMany();
     await prisma.category.deleteMany();
+    await prisma.user.deleteMany();
     await prisma.$disconnect();
   });
 

@@ -1,63 +1,89 @@
+const mongoose = require("mongoose");
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 const app = require("../server");
 const request = require("supertest");
+const Review = require("../src/models/Review");
 
-describe("Recenzje API", () => {
-  let userId, productId;
+let productId = 101;
+let userId = 12;
+let reviewId;
 
-  beforeAll(async () => {
-    const category = await prisma.category.create({
-      data: { name: "Testowa", description: "Opis" },
-    });
+beforeAll(async () => {
+  await mongoose.connect(process.env.MONGODB_URI);
+});
 
-    const product = await prisma.product.create({
-      data: {
-        name: "Produkt",
-        description: "Opis",
-        price: 123,
-        stockCount: 10,
-        brand: "Brand",
-        imageUrl: "https://img.jpg",
-        categoryId: category.id,
-      },
-    });
+afterAll(async () => {
+  await prisma.basket.deleteMany();
+  await prisma.product.deleteMany();
+  await prisma.category.deleteMany();
+  await prisma.user.deleteMany();
+  await prisma.$disconnect();
+  await mongoose.disconnect();
+});
 
-    const user = await prisma.user.create({
-      data: {
-        username: "recenzent",
-        email: "rec@example.com",
-        passwordHash: "tajne",
-        firstName: "Imie",
-        lastName: "Nazwisko",
-      },
-    });
-
-    productId = product.id;
-    userId = user.id;
-
-    console.log("Product ID:", productId);
-    console.log("User ID:", userId);
-  });
-
-  afterAll(async () => {
-    await prisma.review.deleteMany();
-    await prisma.product.deleteMany();
-    await prisma.user.deleteMany();
-    await prisma.category.deleteMany();
-    await prisma.$disconnect();
-  });
-
+describe("Recenzje API (MongoDB)", () => {
   it("dodaje recenzję poprawnie", async () => {
-    const response = await request(app).post("/api/reviews").send({
-      productId: productId,
-      userId: userId,
-      rating: 5,
-      comment: "Recenzja testowa",
-    });
+    const res = await request(app)
+      .post("/api/reviews")
+      .send({
+        productId,
+        userId,
+        rating: 5,
+        title: "Super",
+        content: "Recenzja testowa",
+        pros: ["Szybki", "Wydajny"],
+        cons: ["Głośny"],
+        verifiedPurchase: true,
+      });
 
-    expect(response.statusCode).toBe(201);
-    expect(response.body.rating).toBe(5);
-    expect(response.body.comment).toContain("Recenzja");
+    expect(res.statusCode).toBe(201);
+    expect(res.body.title).toBe("Super");
+    reviewId = res.body._id;
+  });
+
+  it("pobiera recenzje dla produktu", async () => {
+    const res = await request(app).get(
+      `/api/reviews/${productId}?page=1&limit=5`
+    );
+    expect(res.statusCode).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
+  });
+
+  it("aktualizuje recenzję", async () => {
+    const res = await request(app).put(`/api/reviews/${reviewId}`).send({
+      rating: 4,
+      title: "Zmieniona recenzja",
+      content: "Po czasie zauważyłem minusy",
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.body.title).toContain("Zmieniona");
+  });
+
+  it("liczy statystyki recenzji", async () => {
+    const res = await request(app).get(`/api/reviews/${productId}/stats`);
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toHaveProperty("average");
+    expect(res.body).toHaveProperty("distribution");
+  });
+
+  it("wyszukuje recenzje", async () => {
+    const res = await request(app).get(
+      `/api/reviews/search/${productId}?q=minusy&minRating=3`
+    );
+    expect(res.statusCode).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
+  });
+
+  it("głosuje na pomocność recenzji", async () => {
+    const res = await request(app).post(`/api/reviews/${reviewId}/vote`);
+    expect(res.statusCode).toBe(200);
+    expect(res.body.helpfulVotes).toBe(1);
+  });
+
+  it("usuwa recenzję", async () => {
+    const res = await request(app).delete(`/api/reviews/${reviewId}`);
+    expect(res.statusCode).toBe(200);
+    expect(res.body.message).toContain("usunięta");
   });
 });
